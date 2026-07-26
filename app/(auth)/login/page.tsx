@@ -2,7 +2,6 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { GoogleLogin } from "@react-oauth/google";
 import axios from "axios";
 import toast from "react-hot-toast";
 import { 
@@ -40,19 +39,7 @@ export default function LoginPage() {
     }
   };
 
-  const handleGoogleSuccess = async (credentialResponse: { credential?: string }) => {
-    try {
-      await axios.post("/api/auth/login", {
-        provider: "google",
-        googleToken: credentialResponse.credential,
-      });
-      toast.success("Logged in successfully!");
-      router.push("/dashboard");
-    } catch (err: unknown) {
-      const error = err as { response?: { data?: { error?: { message?: string }; message?: string } } };
-      toast.error(error.response?.data?.error?.message || error.response?.data?.message || "Google auth failed");
-    }
-  };
+
 
   return (
     <Card className="w-full max-w-md shadow-lg rounded-2xl border-border/50 backdrop-blur-sm bg-background/90">
@@ -92,26 +79,7 @@ export default function LoginPage() {
           </Button>
         </form>
 
-        {process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID && (
-          <>
-            <div className="mt-6 flex items-center gap-3">
-              <Separator className="flex-1" />
-              <span className="text-xs text-muted-foreground uppercase">Or continue with</span>
-              <Separator className="flex-1" />
-            </div>
 
-            <div className="mt-6 flex justify-center">
-              <GoogleLogin
-                onSuccess={handleGoogleSuccess}
-                onError={() => toast.error("Google Login Failed")}
-                shape="pill"
-              />
-            </div>
-            <p className="mt-2 text-center text-[10px] text-muted-foreground">
-              Google auth is only available for Member accounts.
-            </p>
-          </>
-        )}
       </CardContent>
     </Card>
   );
