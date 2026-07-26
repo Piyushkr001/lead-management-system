@@ -1,9 +1,11 @@
 "use client";
 
+import { useEffect, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Menu } from "lucide-react";
+import { Menu, LogOut } from "lucide-react";
+import axios from "axios";
 
 import { cn } from "@/lib/utils";
 import { Button, buttonVariants } from "@/components/ui/button";
@@ -39,6 +41,27 @@ const navLinks = [
 
 export default function Navbar() {
   const pathname = usePathname();
+  const [user, setUser] = useState<any>(null);
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    axios.get("/api/auth/login")
+      .then((res) => {
+        if (res.data.user) setUser(res.data.user);
+      })
+      .catch(() => {})
+      .finally(() => setIsLoading(false));
+  }, []);
+
+  const handleLogout = async () => {
+    try {
+      await axios.post("/api/auth/logout");
+      setUser(null);
+      window.location.reload();
+    } catch (error) {
+      console.error("Logout failed", error);
+    }
+  };
 
   const isActive = (href: string) => {
     if (href === "/") {
@@ -115,13 +138,29 @@ export default function Navbar() {
           
           {/* Desktop Actions */}
           <div className="hidden items-center gap-3 md:flex">
-            <Link href="/login" className={buttonVariants({ variant: "ghost" })}>
-              Log in
-            </Link>
-
-            <Link href="/#lead-form" className={buttonVariants()}>
-              Get Started
-            </Link>
+            {!isLoading && user ? (
+              <>
+                <span className="text-sm font-medium text-muted-foreground mr-2">
+                  Hi, {user.name}
+                </span>
+                <Link href="/dashboard" className={buttonVariants({ variant: "ghost" })}>
+                  Dashboard
+                </Link>
+                <Button variant="outline" onClick={handleLogout} className="gap-2">
+                  <LogOut className="size-4" />
+                  Log out
+                </Button>
+              </>
+            ) : !isLoading && !user ? (
+              <>
+                <Link href="/login" className={buttonVariants({ variant: "ghost" })}>
+                  Log in
+                </Link>
+                <Link href="/signup" className={buttonVariants()}>
+                  Get Started
+                </Link>
+              </>
+            ) : null}
           </div>
 
           {/* Mobile Menu */}
@@ -193,29 +232,52 @@ export default function Navbar() {
 
                 {/* Mobile Actions */}
                 <div className="mt-8 flex flex-col gap-3 border-t pt-6">
-                  <SheetClose
-                    nativeButton={false}
-                    render={
-                      <Link
-                        href="/login"
-                        className={cn(buttonVariants({ variant: "outline" }), "w-full")}
-                      />
-                    }
-                  >
-                    Log in
-                  </SheetClose>
+                  {!isLoading && user ? (
+                    <>
+                      <SheetClose
+                        nativeButton={false}
+                        render={
+                          <Link
+                            href="/dashboard"
+                            className={cn(buttonVariants({ variant: "outline" }), "w-full")}
+                          />
+                        }
+                      >
+                        Dashboard
+                      </SheetClose>
 
-                  <SheetClose
-                    nativeButton={false}
-                    render={
-                      <Link
-                        href="/#lead-form"
-                        className={cn(buttonVariants(), "w-full")}
-                      />
-                    }
-                  >
-                    Get Started
-                  </SheetClose>
+                      <Button variant="destructive" onClick={handleLogout} className="w-full gap-2">
+                        <LogOut className="size-4" />
+                        Log out
+                      </Button>
+                    </>
+                  ) : !isLoading && !user ? (
+                    <>
+                      <SheetClose
+                        nativeButton={false}
+                        render={
+                          <Link
+                            href="/login"
+                            className={cn(buttonVariants({ variant: "outline" }), "w-full")}
+                          />
+                        }
+                      >
+                        Log in
+                      </SheetClose>
+
+                      <SheetClose
+                        nativeButton={false}
+                        render={
+                          <Link
+                            href="/signup"
+                            className={cn(buttonVariants(), "w-full")}
+                          />
+                        }
+                      >
+                        Get Started
+                      </SheetClose>
+                    </>
+                  ) : null}
                 </div>
 
                 {/* Small Product Message */}

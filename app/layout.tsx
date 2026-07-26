@@ -4,7 +4,7 @@ import "./globals.css";
 import Navbar from "./_shared/Navbar";
 import Footer from "./_shared/Footer";
 import { ThemeProvider } from "@/components/theme-provider";
-
+import { Toaster } from "react-hot-toast";
 
 const exo2 = Exo_2({
   variable: "--font-exo-2",
@@ -34,6 +34,7 @@ export default function RootLayout({
           disableTransitionOnChange
         >
           <Navbar />
+          <Toaster position="top-right" />
           {children}
           <Footer />
         </ThemeProvider>
