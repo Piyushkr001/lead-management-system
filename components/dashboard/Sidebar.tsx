@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { LayoutDashboard, Users, FileText, LogOut, Menu } from "lucide-react";
+import { LayoutDashboard, FileText, LogOut, Menu } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
@@ -19,7 +19,6 @@ interface SidebarProps {
 const adminLinks = [
   { href: "/dashboard", label: "Overview", icon: LayoutDashboard },
   { href: "/dashboard/leads", label: "Leads", icon: FileText },
-  { href: "/dashboard/team", label: "Team", icon: Users },
 ];
 
 const memberLinks = [
@@ -47,7 +46,7 @@ export function Sidebar({ role, className }: SidebarProps) {
       <div className="flex-1 space-y-1 py-4">
         {links.map((link) => {
           const Icon = link.icon;
-          const isActive = pathname === link.href;
+          const isActive = pathname === link.href || (link.href !== "/dashboard" && pathname.startsWith(link.href));
           return (
             <Link
               key={link.href}

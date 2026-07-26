@@ -1,8 +1,7 @@
 "use client";
 
-import { useState, useEffect } from "react";
-import Link from "next/link";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useState } from "react";
+import { useRouter } from "next/navigation";
 import { GoogleLogin } from "@react-oauth/google";
 import axios from "axios";
 import toast from "react-hot-toast";
@@ -10,7 +9,6 @@ import {
   Card, 
   CardContent, 
   CardDescription, 
-  CardFooter, 
   CardHeader, 
   CardTitle 
 } from "@/components/ui/card";
@@ -21,15 +19,10 @@ import { Separator } from "@/components/ui/separator";
 
 export default function LoginPage() {
   const router = useRouter();
-  const searchParams = useSearchParams();
+
+
   const [formData, setFormData] = useState({ email: "", password: "" });
   const [loading, setLoading] = useState(false);
-
-  useEffect(() => {
-    if (searchParams?.get("registered") === "true") {
-      toast.success("Account created successfully. Please login.");
-    }
-  }, [searchParams]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -39,14 +32,15 @@ export default function LoginPage() {
       await axios.post("/api/auth/login", { ...formData, provider: "credentials" });
       toast.success("Logged in successfully!");
       router.push("/dashboard");
-    } catch (err: any) {
-      toast.error(err.response?.data?.message || "Login failed");
+    } catch (err: unknown) {
+      const error = err as { response?: { data?: { error?: { message?: string }; message?: string } } };
+      toast.error(error.response?.data?.error?.message || error.response?.data?.message || "Login failed");
     } finally {
       setLoading(false);
     }
   };
 
-  const handleGoogleSuccess = async (credentialResponse: any) => {
+  const handleGoogleSuccess = async (credentialResponse: { credential?: string }) => {
     try {
       await axios.post("/api/auth/login", {
         provider: "google",
@@ -54,8 +48,9 @@ export default function LoginPage() {
       });
       toast.success("Logged in successfully!");
       router.push("/dashboard");
-    } catch (err: any) {
-      toast.error(err.response?.data?.message || "Google auth failed");
+    } catch (err: unknown) {
+      const error = err as { response?: { data?: { error?: { message?: string }; message?: string } } };
+      toast.error(error.response?.data?.error?.message || error.response?.data?.message || "Google auth failed");
     }
   };
 
@@ -83,9 +78,6 @@ export default function LoginPage() {
           <div className="space-y-2">
             <div className="flex items-center justify-between">
               <Label htmlFor="password">Password</Label>
-              <Link href="#" className="text-xs text-primary hover:underline">
-                Forgot password?
-              </Link>
             </div>
             <Input 
               id="password" 
@@ -100,22 +92,26 @@ export default function LoginPage() {
           </Button>
         </form>
 
-        <div className="mt-6 flex items-center gap-3">
-          <Separator className="flex-1" />
-          <span className="text-xs text-muted-foreground uppercase">Or continue with</span>
-          <Separator className="flex-1" />
-        </div>
+        {process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID && (
+          <>
+            <div className="mt-6 flex items-center gap-3">
+              <Separator className="flex-1" />
+              <span className="text-xs text-muted-foreground uppercase">Or continue with</span>
+              <Separator className="flex-1" />
+            </div>
 
-        <div className="mt-6 flex justify-center">
-          <GoogleLogin
-            onSuccess={handleGoogleSuccess}
-            onError={() => toast.error("Google Login Failed")}
-            shape="pill"
-          />
-        </div>
-        <p className="mt-2 text-center text-[10px] text-muted-foreground">
-          Google auth is only available for Member accounts.
-        </p>
+            <div className="mt-6 flex justify-center">
+              <GoogleLogin
+                onSuccess={handleGoogleSuccess}
+                onError={() => toast.error("Google Login Failed")}
+                shape="pill"
+              />
+            </div>
+            <p className="mt-2 text-center text-[10px] text-muted-foreground">
+              Google auth is only available for Member accounts.
+            </p>
+          </>
+        )}
       </CardContent>
     </Card>
   );

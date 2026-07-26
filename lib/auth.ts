@@ -1,6 +1,9 @@
 import { jwtVerify, SignJWT } from "jose";
 import { cookies } from "next/headers";
 import { env } from "./env";
+import { db } from "@/db";
+import { usersTable } from "@/db/schema";
+import { eq } from "drizzle-orm";
 
 export type Role = "ADMIN" | "MEMBER";
 
@@ -43,8 +46,26 @@ export async function getCurrentUser(): Promise<UserSession | null> {
 
   try {
     const { payload } = await jwtVerify(token, SECRET_KEY);
-    return payload as unknown as UserSession;
-  } catch (error) {
+    
+    if (!payload.id) return null;
+
+    const [user] = await db
+      .select()
+      .from(usersTable)
+      .where(eq(usersTable.id, payload.id as number))
+      .limit(1);
+
+    if (!user || !user.isActive) {
+      return null;
+    }
+
+    return {
+      id: user.id,
+      name: user.name,
+      email: user.email,
+      role: user.role,
+    };
+  } catch {
     return null;
   }
 }

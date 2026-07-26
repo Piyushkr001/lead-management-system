@@ -26,26 +26,18 @@ const navLinks = [
     href: "/",
   },
   {
-    name: "Features",
-    href: "/features",
-  },
-  {
-    name: "About",
-    href: "/about",
-  },
-  {
     name: "Contact",
-    href: "/contact",
+    href: "/#lead-form",
   },
 ];
 
 export default function Navbar() {
   const pathname = usePathname();
-  const [user, setUser] = useState<any>(null);
+  const [user, setUser] = useState<{ id: number; name?: string; role?: string } | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    axios.get("/api/auth/login")
+    axios.get("/api/auth/me")
       .then((res) => {
         if (res.data.user) setUser(res.data.user);
       })

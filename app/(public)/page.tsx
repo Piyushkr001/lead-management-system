@@ -1,12 +1,11 @@
-import Image from "next/image";
 import LandingScreen from "../_shared/Landing";
-
-
+import LeadForm from "../_shared/LeadForm";
 
 export default function Home() {
   return (
-    <div>
+    <main>
       <LandingScreen/>
-    </div>
+      <LeadForm />
+    </main>
   );
 }

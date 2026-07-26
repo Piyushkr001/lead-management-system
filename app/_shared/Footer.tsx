@@ -14,7 +14,7 @@ import { GithubLogoIcon, LinkedinLogoIcon } from "@phosphor-icons/react";
 const productLinks = [
   {
     name: "Features",
-    href: "/features",
+    href: "/#features",
   },
   {
     name: "Lead Management",
@@ -33,19 +33,19 @@ const productLinks = [
 const companyLinks = [
   {
     name: "About",
-    href: "/about",
+    href: "/#about",
   },
   {
     name: "Contact",
-    href: "/contact",
+    href: "/#lead-form",
   },
   {
     name: "Privacy Policy",
-    href: "/privacy",
+    href: "/#privacy",
   },
   {
     name: "Terms",
-    href: "/terms",
+    href: "/#terms",
   },
 ];
 

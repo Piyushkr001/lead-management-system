@@ -73,7 +73,7 @@ export default async function DashboardPage() {
   );
 }
 
-function LayoutDashboardIcon(props: any) {
+function LayoutDashboardIcon(props: React.SVGProps<SVGSVGElement>) {
   return (
     <svg
       {...props}
