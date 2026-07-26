@@ -1,8 +1,6 @@
 import type { Metadata } from "next";
 import { Exo_2 } from "next/font/google";
 import "./globals.css";
-import Navbar from "./_shared/Navbar";
-import Footer from "./_shared/Footer";
 import { ThemeProvider } from "@/components/theme-provider";
 import { Toaster } from "react-hot-toast";
 
@@ -33,10 +31,8 @@ export default function RootLayout({
           enableSystem
           disableTransitionOnChange
         >
-          <Navbar />
           <Toaster position="top-right" />
           {children}
-          <Footer />
         </ThemeProvider>
       </body>
     </html>

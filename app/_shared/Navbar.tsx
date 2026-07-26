@@ -153,11 +153,8 @@ export default function Navbar() {
               </>
             ) : !isLoading && !user ? (
               <>
-                <Link href="/login" className={buttonVariants({ variant: "ghost" })}>
+                <Link href="/login" className={buttonVariants()}>
                   Log in
-                </Link>
-                <Link href="/signup" className={buttonVariants()}>
-                  Get Started
                 </Link>
               </>
             ) : null}
@@ -258,23 +255,11 @@ export default function Navbar() {
                         render={
                           <Link
                             href="/login"
-                            className={cn(buttonVariants({ variant: "outline" }), "w-full")}
-                          />
-                        }
-                      >
-                        Log in
-                      </SheetClose>
-
-                      <SheetClose
-                        nativeButton={false}
-                        render={
-                          <Link
-                            href="/signup"
                             className={cn(buttonVariants(), "w-full")}
                           />
                         }
                       >
-                        Get Started
+                        Log in
                       </SheetClose>
                     </>
                   ) : null}
