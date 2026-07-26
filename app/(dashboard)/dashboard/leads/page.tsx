@@ -34,6 +34,7 @@ interface Lead {
   company?: string;
   status: string;
   assignedTo?: number;
+  assignedUser?: { id: number; name: string; email: string };
   createdAt: string;
 }
 
@@ -201,6 +202,7 @@ export default function LeadsPage() {
               <TableHead>Name</TableHead>
               <TableHead className="hidden md:table-cell">Company/Email</TableHead>
               <TableHead>Status</TableHead>
+              <TableHead className="hidden lg:table-cell">Assigned To</TableHead>
               <TableHead className="hidden lg:table-cell">Created</TableHead>
               <TableHead className="text-right">Action</TableHead>
             </TableRow>
@@ -213,6 +215,7 @@ export default function LeadsPage() {
                   <TableCell><Skeleton className="h-4 w-37.5" /></TableCell>
                   <TableCell className="hidden md:table-cell"><Skeleton className="h-4 w-50" /></TableCell>
                   <TableCell><Skeleton className="h-6 w-20 rounded-full" /></TableCell>
+                  <TableCell className="hidden lg:table-cell"><Skeleton className="h-4 w-20" /></TableCell>
                   <TableCell className="hidden lg:table-cell"><Skeleton className="h-4 w-25" /></TableCell>
                   <TableCell className="text-right"><Skeleton className="h-8 w-16 ml-auto" /></TableCell>
                 </TableRow>
@@ -243,11 +246,20 @@ export default function LeadsPage() {
                       {lead.status}
                     </Badge>
                   </TableCell>
+                  <TableCell className="hidden lg:table-cell text-sm">
+                    {lead.assignedUser ? (
+                      <span className="text-muted-foreground">{lead.assignedUser.name}</span>
+                    ) : (
+                      <span className="text-muted-foreground italic">Unassigned</span>
+                    )}
+                  </TableCell>
                   <TableCell className="hidden lg:table-cell text-sm text-muted-foreground">
                     {format(new Date(lead.createdAt), "MMM d, yyyy")}
                   </TableCell>
                   <TableCell className="text-right">
-                    <Button variant="outline" size="sm">View</Button>
+                    <Button variant="outline" size="sm" onClick={() => router.push(`/dashboard/leads/${lead.id}`)}>
+                      View
+                    </Button>
                   </TableCell>
                 </TableRow>
               ))

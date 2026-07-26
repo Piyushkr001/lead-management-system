@@ -1,5 +1,18 @@
-import { drizzle } from 'drizzle-orm/neon-http';
+import { neonConfig, Pool } from '@neondatabase/serverless';
+import { drizzle } from 'drizzle-orm/neon-serverless';
+import ws from 'ws';
 import * as schema from './schema/index';
+import { env } from '@/lib/env';
 
-// @ts-expect-error - drizzle-orm@1.0.0-rc.4 typing issue
-export const db = drizzle(process.env.DATABASE_URL!, { schema });
+import { defineRelations } from 'drizzle-orm';
+
+// Configure neon to use ws instead of native fetch for WebSocket support in Node.js
+neonConfig.webSocketConstructor = ws;
+
+export const db = drizzle({ 
+  connection: env.DATABASE_URL, 
+  relations: defineRelations(schema), 
+  ws: ws 
+});
+
+
