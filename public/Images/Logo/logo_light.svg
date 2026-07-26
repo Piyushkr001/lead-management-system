@@ -1,0 +1,82 @@
+<svg
+  width="300"
+  height="80"
+  viewBox="0 0 300 80"
+  fill="none"
+  xmlns="http://www.w3.org/2000/svg"
+  role="img"
+  aria-labelledby="leadnexa-title"
+>
+  <title id="leadnexa-title">LeadNexa</title>
+
+  <defs>
+    <linearGradient
+      id="leadnexa-gradient"
+      x1="0"
+      y1="0"
+      x2="1"
+      y2="1"
+    >
+      <stop offset="0%" stop-color="#2563EB" />
+      <stop offset="100%" stop-color="#7C3AED" />
+    </linearGradient>
+  </defs>
+
+  <!-- Brand Icon -->
+  <rect
+    x="8"
+    y="12"
+    width="56"
+    height="56"
+    rx="16"
+    fill="url(#leadnexa-gradient)"
+  />
+
+  <!-- Lead Flow -->
+  <circle cx="25" cy="29" r="4" fill="white" />
+  <circle cx="47" cy="40" r="4" fill="white" />
+  <circle cx="25" cy="51" r="4" fill="white" />
+
+  <path
+    d="M29 29H36C41 29 43 33 43 36V36"
+    stroke="white"
+    stroke-width="3"
+    stroke-linecap="round"
+  />
+
+  <path
+    d="M29 51H36C41 51 43 47 43 44V44"
+    stroke="white"
+    stroke-width="3"
+    stroke-linecap="round"
+  />
+
+  <!-- Arrow -->
+  <path
+    d="M47 40H54"
+    stroke="white"
+    stroke-width="3"
+    stroke-linecap="round"
+  />
+
+  <path
+    d="M51 36L55 40L51 44"
+    stroke="white"
+    stroke-width="3"
+    stroke-linecap="round"
+    stroke-linejoin="round"
+  />
+
+  <!-- Wordmark -->
+  <text
+    x="78"
+    y="51"
+    font-family="Inter, Arial, Helvetica, sans-serif"
+    font-size="36"
+    font-weight="700"
+    letter-spacing="-1"
+  >
+    <tspan fill="#0F172A">Lead</tspan>
+    <tspan fill="url(#leadnexa-gradient)">Nexa</tspan>
+  </text>
+</svg>
