@@ -5,8 +5,7 @@ import { Pool } from 'pg';
 import ws from 'ws';
 import { env } from '@/lib/env';
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-let db: any;
+let db: ReturnType<typeof drizzleNeon>;
 
 if (process.env.NODE_ENV === "test") {
   process.env.PGPORT = "54325";
@@ -16,8 +15,7 @@ if (process.env.NODE_ENV === "test") {
   process.env.PGDATABASE = "leadnexa_test";
   console.log("INITIALIZING TEST DB POOL ON PORT 54325...");
   const pool = new Pool();
-  console.log("POOL OPTIONS:", pool.options);
-  db = drizzlePg(pool);
+  db = drizzlePg({ client: pool }) as unknown as ReturnType<typeof drizzleNeon>;
 } else {
   console.log("INITIALIZING NEON DB POOL...");
   // Configure neon to use ws instead of native fetch for WebSocket support in Node.js
