@@ -47,7 +47,7 @@ export async function parseJsonRequest(req: Request) {
   try {
     return await req.json();
   } catch {
-    throw AppError.validationError("Malformed JSON payload");
+    throw AppError.badRequest("Malformed JSON payload");
   }
 }
 

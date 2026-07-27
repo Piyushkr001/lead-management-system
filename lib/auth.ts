@@ -86,11 +86,3 @@ export async function requireAdmin(): Promise<UserSession> {
   }
   return user;
 }
-
-export async function requireMember(): Promise<UserSession> {
-  const user = await requireAuth();
-  if (user.role !== "MEMBER") {
-    throw AppError.forbidden("Member access required");
-  }
-  return user;
-}

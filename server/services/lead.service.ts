@@ -3,9 +3,7 @@ import { Permissions } from "@/lib/permissions";
 import { UserSession } from "@/lib/auth";
 import { statusEnum } from "@/db/schema/leads";
 import { AppError } from "@/lib/errors";
-import { db } from "@/db";
-import { usersTable } from "@/db/schema/users";
-import { eq } from "drizzle-orm";
+
 
 type Status = typeof statusEnum.enumValues[number];
 
@@ -49,24 +47,6 @@ export class LeadService {
   static async assignLead(user: UserSession, leadId: number, newAssigneeId: number) {
     if (!Permissions.canAssignLead(user)) {
       throw AppError.forbidden();
-    }
-    
-    const [targetUser] = await db
-      .select()
-      .from(usersTable)
-      .where(eq(usersTable.id, newAssigneeId))
-      .limit(1);
-
-    if (!targetUser) {
-      throw AppError.validationError("Assignee does not exist");
-    }
-
-    if (!targetUser.isActive) {
-      throw AppError.validationError("Assignee is not active");
-    }
-
-    if (targetUser.role !== "MEMBER") {
-      throw AppError.validationError("Can only assign leads to members");
     }
 
     await LeadRepository.assignLead(leadId, newAssigneeId, user.id);

@@ -1,9 +1,10 @@
-import { db } from "./db";
-import { leadsTable } from "./db/schema/leads";
+import { db } from "@/db";
+import { leadsTable } from "@/db/schema/leads";
 
 async function run() {
   try {
-    await db.transaction(async (tx) => {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    await db.transaction(async (tx: any) => {
       await tx.select().from(leadsTable).limit(1);
     });
     console.log("Transaction SUCCESS");

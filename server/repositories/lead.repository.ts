@@ -129,6 +129,11 @@ export class LeadRepository {
       const [lead] = await tx.select().from(leadsTable).where(eq(leadsTable.id, leadId)).limit(1);
       if (!lead) throw AppError.notFound("Lead not found");
 
+      const [targetUser] = await tx.select().from(usersTable).where(eq(usersTable.id, newAssigneeId)).limit(1);
+      if (!targetUser) throw AppError.notFound("Assignee does not exist");
+      if (!targetUser.isActive) throw AppError.validationError("Assignee is not active");
+      if (targetUser.role !== "MEMBER") throw AppError.validationError("Can only assign leads to members");
+
       const previousAssigneeId = lead.assignedTo;
       if (previousAssigneeId === newAssigneeId) return lead;
 
@@ -167,18 +172,22 @@ export class LeadRepository {
       const [lead] = await tx.select().from(leadsTable).where(eq(leadsTable.id, leadId)).limit(1);
       if (!lead) throw AppError.notFound("Lead not found");
 
-      if (user.role === "MEMBER" && lead.assignedTo !== user.id) {
-        throw AppError.forbidden("Access denied: You can only modify your assigned leads");
-      }
-      
       const previousStatus = lead.status;
       if (previousStatus === newStatus) return lead;
 
+      const condition = user.role === "MEMBER" 
+        ? and(eq(leadsTable.id, leadId), eq(leadsTable.assignedTo, user.id))
+        : eq(leadsTable.id, leadId);
+
       const [updatedLead] = await tx
         .update(leadsTable)
-        .set({ status: newStatus })
-        .where(eq(leadsTable.id, leadId))
+        .set({ status: newStatus, updatedAt: new Date() })
+        .where(condition)
         .returning();
+
+      if (!updatedLead) {
+        throw AppError.forbidden("Access denied: You can only modify your assigned leads");
+      }
 
       await tx.insert(leadActivitiesTable).values({
         leadId,
@@ -193,10 +202,19 @@ export class LeadRepository {
 
   static async addNote(leadId: number, body: string, user: UserSession) {
     return await db.transaction(async (tx) => {
-      const [lead] = await tx.select().from(leadsTable).where(eq(leadsTable.id, leadId)).limit(1);
-      if (!lead) throw AppError.notFound("Lead not found");
+      const condition = user.role === "MEMBER" 
+        ? and(eq(leadsTable.id, leadId), eq(leadsTable.assignedTo, user.id))
+        : eq(leadsTable.id, leadId);
 
-      if (user.role === "MEMBER" && lead.assignedTo !== user.id) {
+      const [lockedLead] = await tx
+        .update(leadsTable)
+        .set({ updatedAt: new Date() })
+        .where(condition)
+        .returning();
+
+      if (!lockedLead) {
+        const [existing] = await tx.select().from(leadsTable).where(eq(leadsTable.id, leadId)).limit(1);
+        if (!existing) throw AppError.notFound("Lead not found");
         throw AppError.forbidden("Access denied: You can only add notes to your assigned leads");
       }
 

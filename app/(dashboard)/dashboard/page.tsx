@@ -41,7 +41,7 @@ export default async function DashboardPage() {
     const [teamMembersResult] = await db
       .select({ count: sql<number>`count(*)` })
       .from(usersTable)
-      .where(eq(usersTable.isActive, true));
+      .where(and(eq(usersTable.isActive, true), eq(usersTable.role, "MEMBER")));
     totalTeamMembers = Number(teamMembersResult.count);
   }
 
