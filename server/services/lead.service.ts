@@ -69,7 +69,8 @@ export class LeadService {
       throw AppError.validationError("Can only assign leads to members");
     }
 
-    return await LeadRepository.assignLead(leadId, newAssigneeId, user.id);
+    await LeadRepository.assignLead(leadId, newAssigneeId, user.id);
+    return await LeadRepository.getLeadById(leadId);
   }
 
   static async updateLeadStatus(user: UserSession, leadId: number, newStatus: Status) {
@@ -80,7 +81,8 @@ export class LeadService {
       throw AppError.forbidden();
     }
 
-    return await LeadRepository.updateLeadStatus(leadId, newStatus, user);
+    await LeadRepository.updateLeadStatus(leadId, newStatus, user);
+    return await LeadRepository.getLeadById(leadId);
   }
 
   static async addNote(user: UserSession, leadId: number, body: string) {

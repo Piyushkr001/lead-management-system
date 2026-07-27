@@ -9,7 +9,6 @@ import {
 
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
-import { GithubLogoIcon, LinkedinLogoIcon } from "@phosphor-icons/react";
 
 const productLinks = [
   {
@@ -114,38 +113,6 @@ export default function Footer() {
 
             {/* Social Links */}
             <div className="mt-6 flex items-center gap-2">
-              <Button
-                variant="outline"
-                size="icon"
-                className="rounded-full"
-                asChild
-              >
-                <a
-                  href="https://github.com/"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  aria-label="GitHub"
-                >
-                  <GithubLogoIcon className="size-4" />
-                </a>
-              </Button>
-
-              <Button
-                variant="outline"
-                size="icon"
-                className="rounded-full"
-                asChild
-              >
-                <a
-                  href="https://linkedin.com/"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  aria-label="LinkedIn"
-                >
-                  <LinkedinLogoIcon className="size-4" />
-                </a>
-              </Button>
-
               <Button
                 variant="outline"
                 size="icon"

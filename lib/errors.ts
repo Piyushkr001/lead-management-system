@@ -10,11 +10,9 @@ export type ErrorCode =
 export class AppError extends Error {
   public code: ErrorCode;
   public statusCode: number;
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  public details?: any;
+  public details?: unknown;
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  constructor(code: ErrorCode, message: string, statusCode: number, details?: any) {
+  constructor(code: ErrorCode, message: string, statusCode: number, details?: unknown) {
     super(message);
     this.code = code;
     this.statusCode = statusCode;
@@ -34,8 +32,7 @@ export class AppError extends Error {
     return new AppError("NOT_FOUND", message, 404);
   }
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  static validationError(message = "Validation Error", details?: any) {
+  static validationError(message = "Validation Error", details?: unknown) {
     return new AppError("VALIDATION_ERROR", message, 422, details);
   }
 

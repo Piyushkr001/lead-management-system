@@ -1,11 +1,11 @@
 import { publicLeadSchema } from "@/lib/validations/lead.schema";
 import { LeadService } from "@/server/services/lead.service";
-import { handleApiError, apiSuccess } from "@/lib/api-response";
+import { handleApiError, apiSuccess, parseJsonRequest } from "@/lib/api-response";
 import { AppError } from "@/lib/errors";
 
 export async function POST(req: Request) {
   try {
-    const body = await req.json();
+    const body = await parseJsonRequest(req);
     
     const parseResult = publicLeadSchema.safeParse(body);
     if (!parseResult.success) {

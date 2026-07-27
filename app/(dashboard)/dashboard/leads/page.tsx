@@ -106,7 +106,7 @@ export default function LeadsPage() {
           params.delete("search");
         }
         params.set("page", "1"); // reset to page 1 on search change
-        router.push(`/dashboard/leads?${params.toString()}`);
+        router.replace(`/dashboard/leads?${params.toString()}`);
       }
     }, 500);
 
@@ -121,7 +121,7 @@ export default function LeadsPage() {
       params.delete("status");
     }
     params.set("page", "1");
-    router.push(`/dashboard/leads?${params.toString()}`);
+    router.replace(`/dashboard/leads?${params.toString()}`);
   };
 
   const handlePageChange = (newPage: number) => {
@@ -220,7 +220,7 @@ export default function LeadsPage() {
             ) : leads.length === 0 ? (
               // Empty State
               <TableRow>
-                <TableCell colSpan={5} className="h-48 text-center">
+                <TableCell colSpan={6} className="h-48 text-center">
                   <div className="flex flex-col items-center justify-center">
                     <p className="text-muted-foreground font-medium">
                       {currentUser?.role === "ADMIN" 

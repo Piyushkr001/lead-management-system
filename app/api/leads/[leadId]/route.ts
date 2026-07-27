@@ -3,7 +3,7 @@ import { requireAuth } from "@/lib/auth";
 import { LeadService } from "@/server/services/lead.service";
 import { z } from "zod";
 import { statusEnum } from "@/db/schema/leads";
-import { handleApiError, apiSuccess } from "@/lib/api-response";
+import { handleApiError, apiSuccess, parseJsonRequest } from "@/lib/api-response";
 import { AppError } from "@/lib/errors";
 
 const leadIdSchema = z.coerce.number().int().positive("Invalid lead ID");
@@ -50,7 +50,7 @@ export async function PATCH(req: Request, { params }: { params: Promise<{ leadId
       throw AppError.validationError("Invalid lead ID", leadIdResult.error.issues);
     }
 
-    const body = await req.json();
+    const body = await parseJsonRequest(req);
     const parseResult = updateLeadSchema.safeParse(body);
 
     if (!parseResult.success) {

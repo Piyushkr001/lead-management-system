@@ -39,7 +39,7 @@ export default function Navbar() {
   useEffect(() => {
     axios.get("/api/auth/me")
       .then((res) => {
-        if (res.data.user) setUser(res.data.user);
+        if (res.data?.data?.user) setUser(res.data.data.user);
       })
       .catch(() => {})
       .finally(() => setIsLoading(false));

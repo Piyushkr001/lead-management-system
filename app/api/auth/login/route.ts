@@ -5,12 +5,12 @@ import { eq } from "drizzle-orm";
 import bcrypt from "bcryptjs";
 import { createSession } from "@/lib/auth";
 import { loginSchema } from "@/lib/validations/auth.schema";
-import { handleApiError, apiSuccess } from "@/lib/api-response";
+import { handleApiError, apiSuccess, parseJsonRequest } from "@/lib/api-response";
 import { AppError } from "@/lib/errors";
 
 export async function POST(req: Request) {
   try {
-    const body = await req.json();
+    const body = await parseJsonRequest(req);
     const parseResult = loginSchema.safeParse(body);
 
     if (!parseResult.success) {

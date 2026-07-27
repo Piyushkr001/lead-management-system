@@ -5,6 +5,7 @@ import { leadNotesTable } from "@/db/schema/lead-notes";
 import { usersTable } from "@/db/schema/users";
 import { eq, or, ilike, and, desc, sql, inArray } from "drizzle-orm";
 import { UserSession } from "@/lib/auth";
+import { AppError } from "@/lib/errors";
 
 type Status = typeof statusEnum.enumValues[number];
 
@@ -126,15 +127,16 @@ export class LeadRepository {
   static async assignLead(leadId: number, newAssigneeId: number, adminId: number) {
     return await db.transaction(async (tx) => {
       const [lead] = await tx.select().from(leadsTable).where(eq(leadsTable.id, leadId)).limit(1);
-      if (!lead) throw new Error("Lead not found");
+      if (!lead) throw AppError.notFound("Lead not found");
 
       const previousAssigneeId = lead.assignedTo;
-      if (previousAssigneeId === newAssigneeId) return await this.getLeadById(leadId);
+      if (previousAssigneeId === newAssigneeId) return lead;
 
-      await tx
+      const [updatedLead] = await tx
         .update(leadsTable)
         .set({ assignedTo: newAssigneeId })
-        .where(eq(leadsTable.id, leadId));
+        .where(eq(leadsTable.id, leadId))
+        .returning();
         
       // Fetch user details for richer activity log
       const userIds = [newAssigneeId];
@@ -156,26 +158,27 @@ export class LeadRepository {
         metadata,
       });
 
-      return await this.getLeadById(leadId);
+      return updatedLead;
     });
   }
 
   static async updateLeadStatus(leadId: number, newStatus: Status, user: UserSession) {
     return await db.transaction(async (tx) => {
-      const condition = user.role === "MEMBER" 
-        ? and(eq(leadsTable.id, leadId), eq(leadsTable.assignedTo, user.id))
-        : eq(leadsTable.id, leadId);
-        
-      const [lead] = await tx.select().from(leadsTable).where(condition).limit(1);
-      if (!lead) throw new Error("Lead not found or access denied");
+      const [lead] = await tx.select().from(leadsTable).where(eq(leadsTable.id, leadId)).limit(1);
+      if (!lead) throw AppError.notFound("Lead not found");
+
+      if (user.role === "MEMBER" && lead.assignedTo !== user.id) {
+        throw AppError.forbidden("Access denied: You can only modify your assigned leads");
+      }
       
       const previousStatus = lead.status;
-      if (previousStatus === newStatus) return await this.getLeadById(leadId);
+      if (previousStatus === newStatus) return lead;
 
-      await tx
+      const [updatedLead] = await tx
         .update(leadsTable)
         .set({ status: newStatus })
-        .where(condition);
+        .where(eq(leadsTable.id, leadId))
+        .returning();
 
       await tx.insert(leadActivitiesTable).values({
         leadId,
@@ -184,18 +187,18 @@ export class LeadRepository {
         metadata: { from: previousStatus, to: newStatus },
       });
 
-      return await this.getLeadById(leadId);
+      return updatedLead;
     });
   }
 
   static async addNote(leadId: number, body: string, user: UserSession) {
     return await db.transaction(async (tx) => {
-      const condition = user.role === "MEMBER" 
-        ? and(eq(leadsTable.id, leadId), eq(leadsTable.assignedTo, user.id))
-        : eq(leadsTable.id, leadId);
-        
-      const [lead] = await tx.select().from(leadsTable).where(condition).limit(1);
-      if (!lead) throw new Error("Lead not found or access denied");
+      const [lead] = await tx.select().from(leadsTable).where(eq(leadsTable.id, leadId)).limit(1);
+      if (!lead) throw AppError.notFound("Lead not found");
+
+      if (user.role === "MEMBER" && lead.assignedTo !== user.id) {
+        throw AppError.forbidden("Access denied: You can only add notes to your assigned leads");
+      }
 
       const [note] = await tx.insert(leadNotesTable).values({
         leadId,

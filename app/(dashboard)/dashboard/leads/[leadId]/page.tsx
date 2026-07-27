@@ -4,6 +4,7 @@ import { useState, useEffect, use } from "react";
 import { useRouter } from "next/navigation";
 import { format } from "date-fns";
 import axios from "axios";
+import { useUser } from "@/components/dashboard/UserProvider";
 import { ArrowLeft, User, Building, Phone, Mail, Clock, Send, FileText } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
@@ -63,7 +64,7 @@ export default function LeadDetailPage({ params }: { params: Promise<{ leadId: s
   const [lead, setLead] = useState<LeadObj | null>(null);
   const [notes, setNotes] = useState<NoteObj[]>([]);
   const [activities, setActivities] = useState<ActivityObj[]>([]);
-  const [currentUser, setCurrentUser] = useState<UserObj | null>(null);
+  const { user: currentUser } = useUser();
   const [members, setMembers] = useState<UserObj[]>([]);
   
   const [noteBody, setNoteBody] = useState("");
@@ -75,10 +76,7 @@ export default function LeadDetailPage({ params }: { params: Promise<{ leadId: s
     const fetchAllData = async () => {
       try {
         setLoading(true);
-        // Fetch Current User
-        const userRes = await axios.get("/api/auth/me");
-        const user = userRes.data.user;
-        setCurrentUser(user);
+        if (!currentUser) return;
 
         // Fetch Lead
         const leadRes = await axios.get(`/api/leads/${leadId}`);
@@ -93,7 +91,7 @@ export default function LeadDetailPage({ params }: { params: Promise<{ leadId: s
         setActivities(activitiesRes.data.data);
 
         // Fetch Members if Admin
-        if (user.role === "ADMIN") {
+        if (currentUser.role === "ADMIN") {
           const membersRes = await axios.get("/api/users?role=MEMBER");
           setMembers(membersRes.data.data);
         }
@@ -109,7 +107,7 @@ export default function LeadDetailPage({ params }: { params: Promise<{ leadId: s
     };
 
     fetchAllData();
-  }, [leadId, router]);
+  }, [leadId, router, currentUser]);
 
   const handleStatusChange = async (newStatus: string | null) => {
     if (!newStatus) return;
@@ -183,8 +181,8 @@ export default function LeadDetailPage({ params }: { params: Promise<{ leadId: s
     const actorName = activity.actor?.name || "System";
     switch (activity.type) {
       case "LEAD_CREATED": return `${actorName} created the lead via ${activity.metadata?.source || 'unknown source'}`;
-      case "LEAD_ASSIGNED": return `${actorName} assigned the lead to a new member`;
-      case "LEAD_REASSIGNED": return `${actorName} reassigned the lead`;
+      case "LEAD_ASSIGNED": return `${actorName} assigned the lead to ${activity.metadata?.newAssigneeName || 'a member'}`;
+      case "LEAD_REASSIGNED": return `${actorName} reassigned the lead from ${activity.metadata?.previousAssigneeName || 'a member'} to ${activity.metadata?.newAssigneeName || 'a member'}`;
       case "STATUS_CHANGED": return `${actorName} changed status from ${activity.metadata?.from} to ${activity.metadata?.to}`;
       case "NOTE_ADDED": return `${actorName} added a note`;
       default: return `${actorName} performed ${activity.type}`;

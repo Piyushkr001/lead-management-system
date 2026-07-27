@@ -9,7 +9,7 @@ export function handleApiError(error: unknown) {
         error: {
           code: error.code,
           message: error.message,
-          ...(error.details && { details: error.details }),
+          ...(error.details !== undefined ? { details: error.details } : {}),
         },
       },
       { status: error.statusCode }
@@ -43,8 +43,15 @@ export function handleApiError(error: unknown) {
   );
 }
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-export function apiSuccess<T>(data: T, status = 200, extra?: Record<string, any>) {
+export async function parseJsonRequest(req: Request) {
+  try {
+    return await req.json();
+  } catch {
+    throw AppError.validationError("Malformed JSON payload");
+  }
+}
+
+export function apiSuccess<T>(data: T, status = 200, extra?: Record<string, unknown>) {
   return NextResponse.json(
     {
       success: true,
