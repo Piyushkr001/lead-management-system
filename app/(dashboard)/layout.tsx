@@ -1,6 +1,7 @@
 import { redirect } from "next/navigation";
 import { getCurrentUser } from "@/lib/auth";
 import { Sidebar } from "@/components/dashboard/Sidebar";
+import { UserProvider } from "@/components/dashboard/UserProvider";
 
 export default async function DashboardLayout({
   children,
@@ -20,7 +21,9 @@ export default async function DashboardLayout({
         {/* Mobile spacing because of fixed header */}
         <div className="h-14 md:hidden" /> 
         <main className="flex-1 overflow-y-auto p-4 md:p-6 bg-muted/20">
-          {children}
+          <UserProvider initialUser={user}>
+            {children}
+          </UserProvider>
         </main>
       </div>
     </div>

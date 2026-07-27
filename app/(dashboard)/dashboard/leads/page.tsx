@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { format } from "date-fns";
 import { Search } from "lucide-react";
+import { useUser } from "@/components/dashboard/UserProvider";
 
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -54,7 +55,7 @@ export default function LeadsPage() {
   const [pagination, setPagination] = useState<Pagination | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [currentUser, setCurrentUser] = useState<{ role: string; name?: string } | null>(null);
+  const { user: currentUser } = useUser();
 
   // Filters from URL
   const page = parseInt(searchParams?.get("page") || "1", 10);
@@ -71,11 +72,7 @@ export default function LeadsPage() {
         setLoading(true);
         setError(null);
         
-        // Fetch user if we don't have it (could be optimized with a global state)
-        if (!currentUser) {
-          const userRes = await axios.get("/api/auth/me");
-          setCurrentUser(userRes.data.user);
-        }
+        if (!currentUser) return;
 
         // Build query string
         const params = new URLSearchParams();

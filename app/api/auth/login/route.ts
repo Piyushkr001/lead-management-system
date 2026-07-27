@@ -1,10 +1,12 @@
-import { NextResponse } from "next/server";
+
 import { db } from "@/db";
 import { usersTable } from "@/db/schema";
 import { eq } from "drizzle-orm";
 import bcrypt from "bcryptjs";
 import { createSession } from "@/lib/auth";
 import { loginSchema } from "@/lib/validations/auth.schema";
+import { handleApiError, apiSuccess } from "@/lib/api-response";
+import { AppError } from "@/lib/errors";
 
 export async function POST(req: Request) {
   try {
@@ -12,10 +14,7 @@ export async function POST(req: Request) {
     const parseResult = loginSchema.safeParse(body);
 
     if (!parseResult.success) {
-      return NextResponse.json(
-        { success: false, error: { code: "VALIDATION_ERROR", message: "Invalid request payload", details: parseResult.error.issues } },
-        { status: 400 }
-      );
+      throw AppError.validationError("Invalid request payload", parseResult.error.issues);
     }
 
     const { email, password } = parseResult.data;
@@ -24,25 +23,16 @@ export async function POST(req: Request) {
     const user = users[0];
 
     if (!user || !user.passwordHash) {
-      return NextResponse.json(
-        { success: false, error: { code: "INVALID_CREDENTIALS", message: "Invalid credentials" } },
-        { status: 401 }
-      );
+      throw AppError.unauthorized("Invalid credentials");
     }
 
     const isValidPassword = await bcrypt.compare(password, user.passwordHash);
     if (!isValidPassword) {
-      return NextResponse.json(
-        { success: false, error: { code: "INVALID_CREDENTIALS", message: "Invalid credentials" } },
-        { status: 401 }
-      );
+      throw AppError.unauthorized("Invalid credentials");
     }
 
     if (!user.isActive) {
-      return NextResponse.json(
-        { success: false, error: { code: "ACCOUNT_DISABLED", message: "Account is disabled." } },
-        { status: 403 }
-      );
+      throw AppError.forbidden("Account is disabled");
     }
 
     // Set Session Cookie via the utility
@@ -53,16 +43,13 @@ export async function POST(req: Request) {
       role: user.role,
     });
 
-    return NextResponse.json({ 
-      success: true,
-      data: { user: { id: user.id, name: user.name, email: user.email, role: user.role } }
-    }, { status: 200 });
-
+    return apiSuccess({ user: { id: user.id, name: user.name, email: user.email, role: user.role } });
   } catch (error) {
+    if (error instanceof AppError) {
+        return handleApiError(error);
+    }
+    
     console.error("Login error:", error);
-    return NextResponse.json(
-      { success: false, error: { code: "INTERNAL_SERVER_ERROR", message: "Internal Server Error" } },
-      { status: 500 }
-    );
+    return handleApiError(AppError.internal());
   }
 }

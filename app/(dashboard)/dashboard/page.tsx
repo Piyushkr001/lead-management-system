@@ -1,11 +1,49 @@
 import { getCurrentUser } from "@/lib/auth";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Users, FileText, Activity } from "lucide-react";
+import { db } from "@/db";
+import { leadsTable } from "@/db/schema/leads";
+import { usersTable } from "@/db/schema/users";
+import { eq, and, sql, inArray } from "drizzle-orm";
 
 export default async function DashboardPage() {
   const user = await getCurrentUser();
 
   if (!user) return null; // Caught by layout redirect
+
+  const leadCondition = user.role === "MEMBER" ? eq(leadsTable.assignedTo, user.id) : undefined;
+  
+  // Fetch Total Leads
+  const [totalLeadsResult] = await db
+    .select({ count: sql<number>`count(*)` })
+    .from(leadsTable)
+    .where(leadCondition);
+    
+  const totalLeads = Number(totalLeadsResult.count);
+
+  // Fetch Active Deals
+  type Status = "NEW" | "CONTACTED" | "QUALIFIED" | "PROPOSAL" | "WON" | "LOST";
+  const activeStatuses: Status[] = ["CONTACTED", "QUALIFIED", "PROPOSAL"];
+  const activeDealsCondition = user.role === "MEMBER" 
+    ? and(eq(leadsTable.assignedTo, user.id), inArray(leadsTable.status, activeStatuses))
+    : inArray(leadsTable.status, activeStatuses);
+    
+  const [activeDealsResult] = await db
+    .select({ count: sql<number>`count(*)` })
+    .from(leadsTable)
+    .where(activeDealsCondition);
+    
+  const activeDeals = Number(activeDealsResult.count);
+  
+  // Fetch Team Members
+  let totalTeamMembers = 0;
+  if (user.role === "ADMIN") {
+    const [teamMembersResult] = await db
+      .select({ count: sql<number>`count(*)` })
+      .from(usersTable)
+      .where(eq(usersTable.isActive, true));
+    totalTeamMembers = Number(teamMembersResult.count);
+  }
 
   return (
     <div className="flex flex-col gap-6">
@@ -16,7 +54,6 @@ export default async function DashboardPage() {
         </p>
       </div>
       
-      {/* Placeholder Stats */}
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
@@ -24,9 +61,9 @@ export default async function DashboardPage() {
             <FileText className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">0</div>
+            <div className="text-2xl font-bold">{totalLeads}</div>
             <p className="text-xs text-muted-foreground mt-1">
-              +0% from last month
+              Currently assigned or available
             </p>
           </CardContent>
         </Card>
@@ -37,9 +74,9 @@ export default async function DashboardPage() {
             <Activity className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">0</div>
+            <div className="text-2xl font-bold">{activeDeals}</div>
             <p className="text-xs text-muted-foreground mt-1">
-              +0% from last month
+              Leads in Contacted, Qualified, or Proposal
             </p>
           </CardContent>
         </Card>
@@ -51,46 +88,14 @@ export default async function DashboardPage() {
               <Users className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">3</div>
+              <div className="text-2xl font-bold">{totalTeamMembers}</div>
               <p className="text-xs text-muted-foreground mt-1">
-                Admin, Member, Sales
+                Active members on the platform
               </p>
             </CardContent>
           </Card>
         )}
       </div>
-
-      <div className="mt-4 p-8 border border-dashed rounded-lg flex flex-col items-center justify-center text-center">
-        <div className="rounded-full bg-primary/10 p-3 mb-4">
-          <LayoutDashboardIcon className="h-6 w-6 text-primary" />
-        </div>
-        <h3 className="text-lg font-medium">Dashboard Foundation Ready</h3>
-        <p className="text-sm text-muted-foreground mt-2 max-w-sm">
-          The dashboard architecture and RBAC are configured. Real lead data will be populated in the next phase.
-        </p>
-      </div>
     </div>
-  );
-}
-
-function LayoutDashboardIcon(props: React.SVGProps<SVGSVGElement>) {
-  return (
-    <svg
-      {...props}
-      xmlns="http://www.w3.org/2000/svg"
-      width="24"
-      height="24"
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="2"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-    >
-      <rect width="7" height="9" x="3" y="3" rx="1" />
-      <rect width="7" height="5" x="14" y="3" rx="1" />
-      <rect width="7" height="9" x="14" y="12" rx="1" />
-      <rect width="7" height="5" x="3" y="16" rx="1" />
-    </svg>
   );
 }

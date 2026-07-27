@@ -10,7 +10,7 @@ export const leadsTable = pgTable("leads", {
   phone: varchar("phone", { length: 50 }),
   company: varchar("company", { length: 255 }),
   message: text("message"),
-  source: varchar("source", { length: 100 }).default("Website").notNull(),
+  source: varchar("source", { length: 100 }).default("WEBSITE").notNull(),
   status: statusEnum("status").default("NEW").notNull(),
   assignedTo: integer("assigned_to").references(() => usersTable.id, { onDelete: "set null" }),
   createdAt: timestamp("created_at").defaultNow().notNull(),

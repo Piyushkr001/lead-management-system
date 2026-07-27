@@ -1,42 +1,42 @@
-import { NextResponse } from "next/server";
+
 import { requireAuth } from "@/lib/auth";
 import { LeadService } from "@/server/services/lead.service";
 import { z } from "zod";
 import { statusEnum } from "@/db/schema/leads";
+import { handleApiError, apiSuccess } from "@/lib/api-response";
+import { AppError } from "@/lib/errors";
+
+const leadIdSchema = z.coerce.number().int().positive("Invalid lead ID");
 
 const updateLeadSchema = z.object({
   assignedTo: z.number().int().positive().optional(),
   status: z.enum(statusEnum.enumValues).optional(),
+}).refine(data => {
+  const hasAssignedTo = data.assignedTo !== undefined;
+  const hasStatus = data.status !== undefined;
+  return (hasAssignedTo && !hasStatus) || (!hasAssignedTo && hasStatus);
+}, {
+  message: "Provide exactly ONE mutation per request (either assignedTo OR status)",
 });
 
 export async function GET(req: Request, { params }: { params: Promise<{ leadId: string }> }) {
   try {
     const user = await requireAuth();
     const resolvedParams = await params;
-    const leadId = parseInt(resolvedParams.leadId, 10);
-
-    if (isNaN(leadId)) {
-      return NextResponse.json({ success: false, error: { code: "BAD_REQUEST", message: "Invalid lead ID" } }, { status: 400 });
+    
+    const leadIdResult = leadIdSchema.safeParse(resolvedParams.leadId);
+    if (!leadIdResult.success) {
+      throw AppError.validationError("Invalid lead ID", leadIdResult.error.issues);
     }
 
-    const lead = await LeadService.getLeadByIdForUser(user, leadId);
+    const lead = await LeadService.getLeadByIdForUser(user, leadIdResult.data);
     if (!lead) {
-      return NextResponse.json({ success: false, error: { code: "NOT_FOUND", message: "Lead not found" } }, { status: 404 });
+      throw AppError.notFound("Lead not found");
     }
 
-    return NextResponse.json({ success: true, data: lead });
+    return apiSuccess(lead);
   } catch (error) {
-    if (error instanceof Error && (error.message === "Unauthorized" || error.message.includes("Forbidden"))) {
-      return NextResponse.json(
-        { success: false, error: { code: "FORBIDDEN", message: error.message } },
-        { status: error.message === "Unauthorized" ? 401 : 403 }
-      );
-    }
-
-    return NextResponse.json(
-      { success: false, error: { code: "INTERNAL_SERVER_ERROR", message: "Internal server error" } },
-      { status: 500 }
-    );
+    return handleApiError(error);
   }
 }
 
@@ -44,22 +44,20 @@ export async function PATCH(req: Request, { params }: { params: Promise<{ leadId
   try {
     const user = await requireAuth();
     const resolvedParams = await params;
-    const leadId = parseInt(resolvedParams.leadId, 10);
-
-    if (isNaN(leadId)) {
-      return NextResponse.json({ success: false, error: { code: "BAD_REQUEST", message: "Invalid lead ID" } }, { status: 400 });
+    
+    const leadIdResult = leadIdSchema.safeParse(resolvedParams.leadId);
+    if (!leadIdResult.success) {
+      throw AppError.validationError("Invalid lead ID", leadIdResult.error.issues);
     }
 
     const body = await req.json();
     const parseResult = updateLeadSchema.safeParse(body);
 
     if (!parseResult.success) {
-      return NextResponse.json(
-        { success: false, error: { code: "VALIDATION_ERROR", message: "Invalid payload", details: parseResult.error.issues } },
-        { status: 422 }
-      );
+      throw AppError.validationError("Invalid payload", parseResult.error.issues);
     }
 
+    const leadId = leadIdResult.data;
     const { assignedTo, status } = parseResult.data;
     
     let updatedLead = null;
@@ -73,26 +71,13 @@ export async function PATCH(req: Request, { params }: { params: Promise<{ leadId
     }
 
     if (!updatedLead) {
-      return NextResponse.json({ success: false, error: { code: "BAD_REQUEST", message: "No update fields provided" } }, { status: 400 });
+      throw AppError.badRequest("No update fields provided");
     }
 
-    return NextResponse.json({ success: true, data: updatedLead });
+    // Refetch fully hydrated lead
+    const hydratedLead = await LeadService.getLeadByIdForUser(user, leadId);
+    return apiSuccess(hydratedLead);
   } catch (error) {
-    if (error instanceof Error) {
-      if (error.message === "Unauthorized" || error.message.includes("Forbidden")) {
-        return NextResponse.json(
-          { success: false, error: { code: "FORBIDDEN", message: error.message } },
-          { status: error.message === "Unauthorized" ? 401 : 403 }
-        );
-      }
-      if (error.message === "Not Found") {
-        return NextResponse.json({ success: false, error: { code: "NOT_FOUND", message: "Lead not found" } }, { status: 404 });
-      }
-    }
-
-    return NextResponse.json(
-      { success: false, error: { code: "INTERNAL_SERVER_ERROR", message: "Internal server error" } },
-      { status: 500 }
-    );
+    return handleApiError(error);
   }
 }

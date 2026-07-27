@@ -4,6 +4,7 @@ import { env } from "./env";
 import { db } from "@/db";
 import { usersTable } from "@/db/schema";
 import { eq } from "drizzle-orm";
+import { AppError } from "./errors";
 
 export type Role = "ADMIN" | "MEMBER";
 
@@ -73,7 +74,7 @@ export async function getCurrentUser(): Promise<UserSession | null> {
 export async function requireAuth(): Promise<UserSession> {
   const user = await getCurrentUser();
   if (!user) {
-    throw new Error("Unauthorized");
+    throw AppError.unauthorized();
   }
   return user;
 }
@@ -81,7 +82,7 @@ export async function requireAuth(): Promise<UserSession> {
 export async function requireAdmin(): Promise<UserSession> {
   const user = await requireAuth();
   if (user.role !== "ADMIN") {
-    throw new Error("Forbidden: Admin access required");
+    throw AppError.forbidden("Admin access required");
   }
   return user;
 }
@@ -89,7 +90,7 @@ export async function requireAdmin(): Promise<UserSession> {
 export async function requireMember(): Promise<UserSession> {
   const user = await requireAuth();
   if (user.role !== "MEMBER") {
-    throw new Error("Forbidden: Member access required");
+    throw AppError.forbidden("Member access required");
   }
   return user;
 }

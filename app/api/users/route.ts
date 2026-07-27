@@ -1,21 +1,29 @@
-import { NextResponse } from "next/server";
 import { requireAdmin } from "@/lib/auth";
 import { db } from "@/db";
-import { usersTable } from "@/db/schema/users";
+import { usersTable, roleEnum } from "@/db/schema/users";
 import { eq, and } from "drizzle-orm";
+import { z } from "zod";
+import { handleApiError, apiSuccess } from "@/lib/api-response";
+import { AppError } from "@/lib/errors";
+
+const roleQuerySchema = z.enum(roleEnum.enumValues).optional();
 
 export async function GET(req: Request) {
   try {
     await requireAdmin();
 
     const { searchParams } = new URL(req.url);
-    const role = searchParams.get("role");
+    const roleParam = searchParams.get("role") || undefined;
+    
+    const roleResult = roleQuerySchema.safeParse(roleParam);
+    if (!roleResult.success) {
+      throw AppError.validationError("Invalid role parameter", roleResult.error.issues);
+    }
 
     const conditions = [eq(usersTable.isActive, true)];
 
-    if (role) {
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      conditions.push(eq(usersTable.role, role as any));
+    if (roleResult.data) {
+      conditions.push(eq(usersTable.role, roleResult.data));
     }
 
     const users = await db
@@ -28,19 +36,8 @@ export async function GET(req: Request) {
       .from(usersTable)
       .where(and(...conditions));
 
-    return NextResponse.json({ success: true, data: users });
+    return apiSuccess(users);
   } catch (error) {
-    if (error instanceof Error && (error.message === "Unauthorized" || error.message.includes("Forbidden"))) {
-      return NextResponse.json(
-        { success: false, error: { code: "FORBIDDEN", message: error.message } },
-        { status: error.message === "Unauthorized" ? 401 : 403 }
-      );
-    }
-
-    console.error("Users GET Error:", error);
-    return NextResponse.json(
-      { success: false, error: { code: "INTERNAL_SERVER_ERROR", message: "Failed to fetch users" } },
-      { status: 500 }
-    );
+    return handleApiError(error);
   }
 }

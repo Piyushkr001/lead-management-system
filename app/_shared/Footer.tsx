@@ -39,14 +39,6 @@ const companyLinks = [
     name: "Contact",
     href: "/#lead-form",
   },
-  {
-    name: "Privacy Policy",
-    href: "/#privacy",
-  },
-  {
-    name: "Terms",
-    href: "/#terms",
-  },
 ];
 
 const quickLinks = [
@@ -161,7 +153,7 @@ export default function Footer() {
                 asChild
               >
                 <Link
-                  href="/contact"
+                  href="/#lead-form"
                   aria-label="Contact LeadNexa"
                 >
                   <Mail className="size-4" />

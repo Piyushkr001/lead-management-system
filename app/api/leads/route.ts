@@ -1,31 +1,24 @@
-import { NextResponse } from "next/server";
+import { handleApiError, apiSuccess } from "@/lib/api-response";
 import { leadQuerySchema } from "@/lib/validations/lead.schema";
 import { LeadService } from "@/server/services/lead.service";
-import { getCurrentUser } from "@/lib/auth";
+import { requireAuth } from "@/lib/auth";
+import { AppError } from "@/lib/errors";
 
 export async function GET(req: Request) {
   try {
-    const user = await getCurrentUser();
-    if (!user) {
-      return NextResponse.json({ success: false, error: { code: "UNAUTHORIZED", message: "Unauthorized" } }, { status: 401 });
-    }
+    const user = await requireAuth();
 
     const { searchParams } = new URL(req.url);
     const query = Object.fromEntries(searchParams.entries());
 
     const parseResult = leadQuerySchema.safeParse(query);
     if (!parseResult.success) {
-      return NextResponse.json(
-        { success: false, error: { code: "VALIDATION_ERROR", message: "Invalid query parameters", details: parseResult.error.issues } },
-        { status: 400 }
-      );
+      throw AppError.validationError("Invalid query parameters", parseResult.error.issues);
     }
 
     const result = await LeadService.getLeadsForUser(user, parseResult.data);
 
-    return NextResponse.json({
-      success: true,
-      data: result.leads,
+    return apiSuccess(result.leads, 200, {
       pagination: {
         page: parseResult.data.page,
         pageSize: parseResult.data.pageSize,
@@ -34,10 +27,6 @@ export async function GET(req: Request) {
       }
     });
   } catch (error) {
-    console.error("Get Leads Error:", error);
-    return NextResponse.json(
-      { success: false, error: { code: "INTERNAL_SERVER_ERROR", message: "Failed to fetch leads" } },
-      { status: 500 }
-    );
+    return handleApiError(error);
   }
 }
