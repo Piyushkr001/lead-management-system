@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { format } from "date-fns";
 import axios from "axios";
 import { useUser } from "@/components/dashboard/UserProvider";
+import { Role, LeadStatus } from "@/lib/types";
 import { ArrowLeft, User, Building, Phone, Mail, Clock, Send, FileText } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
@@ -25,7 +26,7 @@ interface UserObj {
   id: number;
   name: string;
   email: string;
-  role: string;
+  role: Role;
 }
 
 interface LeadObj {
@@ -36,7 +37,7 @@ interface LeadObj {
   company?: string;
   message?: string;
   source: string;
-  status: string;
+  status: LeadStatus;
   assignedUser?: { id: number; name: string; email: string };
   createdAt: string;
 }
@@ -165,7 +166,7 @@ export default function LeadDetailPage({ params }: { params: Promise<{ leadId: s
     }
   };
 
-  const getStatusBadgeVariant = (status: string): "default" | "secondary" | "destructive" | "outline" => {
+  const getStatusBadgeVariant = (status: LeadStatus): "default" | "secondary" | "destructive" | "outline" => {
     switch (status) {
       case "NEW": return "default";
       case "CONTACTED": return "secondary";

@@ -2,12 +2,13 @@
 
 import React, { createContext, useContext, useState, useEffect } from "react";
 import axios from "axios";
+import { Role } from "@/lib/types";
 
 type User = {
   id: number;
   name: string;
   email: string;
-  role: string;
+  role: Role;
 };
 
 const UserContext = createContext<{ user: User | null; isLoading: boolean }>({

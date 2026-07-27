@@ -3,8 +3,10 @@
 import { useState, useEffect } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { format } from "date-fns";
-import { Search } from "lucide-react";
+import { Search, ChevronLeft, ChevronRight, Filter } from "lucide-react";
 import { useUser } from "@/components/dashboard/UserProvider";
+import { useDebounce } from "@/hooks/use-debounce";
+import { LeadStatus } from "@/lib/types";
 
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -33,7 +35,7 @@ interface Lead {
   name: string;
   email: string;
   company?: string;
-  status: string;
+  status: LeadStatus;
   assignedTo?: number;
   assignedUser?: { id: number; name: string; email: string };
   createdAt: string;
@@ -130,7 +132,7 @@ export default function LeadsPage() {
     router.push(`/dashboard/leads?${params.toString()}`);
   };
 
-  const getStatusBadgeVariant = (status: string): "default" | "secondary" | "destructive" | "outline" => {
+  const getStatusBadgeVariant = (status: LeadStatus): "default" | "secondary" | "destructive" | "outline" => {
     switch (status) {
       case "NEW": return "default";
       case "CONTACTED": return "secondary";

@@ -1,4 +1,4 @@
-"use client"
+
 import Link from "next/link";
 import Image from "next/image";
 import {
@@ -12,14 +12,6 @@ import { Separator } from "@/components/ui/separator";
 
 const productLinks = [
   {
-    name: "Features",
-    href: "/#features",
-  },
-  {
-    name: "Lead Management",
-    href: "/#lead-management",
-  },
-  {
     name: "Lead Capture",
     href: "/#lead-form",
   },
@@ -30,10 +22,6 @@ const productLinks = [
 ];
 
 const companyLinks = [
-  {
-    name: "About",
-    href: "/#about",
-  },
   {
     name: "Contact",
     href: "/#lead-form",
