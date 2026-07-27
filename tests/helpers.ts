@@ -1,7 +1,7 @@
 import { db } from "@/db";
 import { sql } from "drizzle-orm";
 import { usersTable } from "@/db/schema/users";
-import { leadsTable, statusEnum } from "@/db/schema/leads";
+import { leadsTable } from "@/db/schema/leads";
 import bcrypt from "bcryptjs";
 
 export async function clearDb() {

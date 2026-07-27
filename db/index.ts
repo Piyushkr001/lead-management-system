@@ -13,11 +13,11 @@ if (process.env.NODE_ENV === "test") {
   process.env.PGUSER = "testuser";
   process.env.PGPASSWORD = "testpassword";
   process.env.PGDATABASE = "leadnexa_test";
-  console.log("INITIALIZING TEST DB POOL ON PORT 54325...");
+
   const pool = new Pool();
   db = drizzlePg({ client: pool }) as unknown as ReturnType<typeof drizzleNeon>;
 } else {
-  console.log("INITIALIZING NEON DB POOL...");
+
   // Configure neon to use ws instead of native fetch for WebSocket support in Node.js
   neonConfig.webSocketConstructor = ws;
   db = drizzleNeon({ connection: env.DATABASE_URL, ws });

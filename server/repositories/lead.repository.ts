@@ -1,5 +1,5 @@
 import { db } from "@/db";
-import { leadsTable, statusEnum } from "@/db/schema/leads";
+import { leadsTable } from "@/db/schema/leads";
 import { leadActivitiesTable } from "@/db/schema/lead-activities";
 import { leadNotesTable } from "@/db/schema/lead-notes";
 import { usersTable } from "@/db/schema/users";
@@ -7,7 +7,7 @@ import { eq, or, ilike, and, desc, sql, inArray } from "drizzle-orm";
 import { UserSession } from "@/lib/auth";
 import { AppError } from "@/lib/errors";
 
-type Status = typeof statusEnum.enumValues[number];
+import { LeadStatus } from "@/lib/types";
 
 export class LeadRepository {
   static async createPublicLead(data: {
@@ -42,7 +42,7 @@ export class LeadRepository {
   static async getLeads(params: {
     page: number;
     pageSize: number;
-    status?: string;
+    status?: LeadStatus | "ALL";
     assignedTo?: number;
     search?: string;
   }) {
@@ -51,8 +51,8 @@ export class LeadRepository {
 
     const conditions = [];
 
-    if (status) {
-      conditions.push(eq(leadsTable.status, status as Status));
+    if (status && status !== "ALL") {
+      conditions.push(eq(leadsTable.status, status));
     }
 
     if (assignedTo) {
@@ -167,7 +167,7 @@ export class LeadRepository {
     });
   }
 
-  static async updateLeadStatus(leadId: number, newStatus: Status, user: UserSession) {
+  static async updateLeadStatus(leadId: number, newStatus: LeadStatus, user: UserSession) {
     return await db.transaction(async (tx) => {
       const [lead] = await tx.select().from(leadsTable).where(eq(leadsTable.id, leadId)).limit(1);
       if (!lead) throw AppError.notFound("Lead not found");

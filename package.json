@@ -13,6 +13,9 @@
     "db:push": "drizzle-kit push",
     "db:studio": "drizzle-kit studio",
     "db:seed": "bun run db/seed.ts",
+    "test:db:up": "docker compose up -d",
+    "test:db:down": "docker compose down",
+    "test:watch": "vitest",
     "test": "vitest run"
   },
   "dependencies": {

@@ -3,9 +3,8 @@
 import { useState, useEffect } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { format } from "date-fns";
-import { Search, ChevronLeft, ChevronRight, Filter } from "lucide-react";
+import { Search } from "lucide-react";
 import { useUser } from "@/components/dashboard/UserProvider";
-import { useDebounce } from "@/hooks/use-debounce";
 import { LeadStatus } from "@/lib/types";
 
 import { Input } from "@/components/ui/input";

@@ -74,9 +74,7 @@ export async function PATCH(req: Request, { params }: { params: Promise<{ leadId
       throw AppError.badRequest("No update fields provided");
     }
 
-    // Refetch fully hydrated lead
-    const hydratedLead = await LeadService.getLeadByIdForUser(user, leadId);
-    return apiSuccess(hydratedLead);
+    return apiSuccess(updatedLead);
   } catch (error) {
     return handleApiError(error);
   }

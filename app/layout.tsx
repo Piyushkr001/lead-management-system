@@ -22,7 +22,7 @@ export default function RootLayout({
   return (
     <html suppressHydrationWarning
       lang="en"
-      className={`${exo2.className} h-full antialiased`}
+      className={`${exo2.className} ${exo2.variable} h-full antialiased`}
     >
       <body className="min-h-full flex flex-col">
         <ThemeProvider

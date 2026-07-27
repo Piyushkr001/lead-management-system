@@ -1,11 +1,9 @@
 import { LeadRepository } from "../repositories/lead.repository";
 import { Permissions } from "@/lib/permissions";
 import { UserSession } from "@/lib/auth";
-import { statusEnum } from "@/db/schema/leads";
 import { AppError } from "@/lib/errors";
 
-
-type Status = typeof statusEnum.enumValues[number];
+import { LeadStatus } from "@/lib/types";
 
 export class LeadService {
   static async createPublicLead(data: {
@@ -20,7 +18,7 @@ export class LeadService {
 
   static async getLeadsForUser(
     user: UserSession,
-    params: { page: number; pageSize: number; status?: string; assignedTo?: number; search?: string }
+    params: { page: number; pageSize: number; status?: LeadStatus | "ALL"; assignedTo?: number; search?: string }
   ) {
     let effectiveAssignedTo = params.assignedTo;
     if (user.role === "MEMBER") {
@@ -53,7 +51,7 @@ export class LeadService {
     return await LeadRepository.getLeadById(leadId);
   }
 
-  static async updateLeadStatus(user: UserSession, leadId: number, newStatus: Status) {
+  static async updateLeadStatus(user: UserSession, leadId: number, newStatus: LeadStatus) {
     const lead = await LeadRepository.getLeadById(leadId);
     if (!lead) throw AppError.notFound("Lead not found");
 

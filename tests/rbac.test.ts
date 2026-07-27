@@ -12,7 +12,7 @@ vi.mock("next/headers", () => ({
   }),
 }));
 
-async function setMockUser(user: any) {
+async function setMockUser(user: { id: number; email: string; role: string }) {
   const secret = new TextEncoder().encode(process.env.JWT_SECRET);
   mockToken = await new jose.SignJWT({
     id: user.id,
@@ -37,7 +37,7 @@ describe("RBAC Tests", () => {
     
     await createTestLead(member.id); // Assigned to Member
     await createTestLead(otherMember.id); // Assigned to Other
-    await createTestLead(null); // Unassigned (MEMBER should see this or not? Currently MEMBER sees NEW unassigned leads if business logic allows, wait. Actually MEMBER only sees assigned to them according to the query. Let's see the exact API return)
+    await createTestLead(); // Unassigned (MEMBER should see this or not? Currently MEMBER sees NEW unassigned leads if business logic allows, wait. Actually MEMBER only sees assigned to them according to the query. Let's see the exact API return)
     
     await setMockUser(member);
     
@@ -45,13 +45,13 @@ describe("RBAC Tests", () => {
     const res = await getLeads(req);
     expect(res.status).toBe(200);
     const json = await res.json();
-    console.log("MEMBER LEADS JSON:", json);
+
     
     // Verify only assigned lead is returned
     expect(json.data).toBeDefined();
     // Usually a MEMBER sees leads assigned to them. Let's check length.
     expect(json.data.length).toBeGreaterThanOrEqual(1);
-    json.data.forEach((lead: any) => {
+    json.data.forEach((lead: { assignedTo: number | null }) => {
       expect(lead.assignedTo).toBe(member.id);
     });
   });
@@ -61,7 +61,7 @@ describe("RBAC Tests", () => {
     const otherMember = await createTestUser("MEMBER");
     
     await createTestLead(otherMember.id); 
-    await createTestLead(null);
+    await createTestLead();
     
     await setMockUser(admin);
     
@@ -69,7 +69,7 @@ describe("RBAC Tests", () => {
     const res = await getLeads(req);
     expect(res.status).toBe(200);
     const json = await res.json();
-    console.log("ADMIN LEADS JSON:", json);
+
     
     // Admin should see both leads
     expect(json.data.length).toBe(2);
