@@ -36,7 +36,7 @@ interface Lead {
   company?: string;
   status: LeadStatus;
   assignedTo?: number;
-  assignedUser?: { id: number; name: string; email: string };
+  assignedUser: { id: number; name: string; email: string } | null;
   createdAt: string;
 }
 

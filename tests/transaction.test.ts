@@ -1,4 +1,4 @@
-import { describe, it, expect, beforeEach, vi } from "vitest";
+import { describe, it, expect, beforeEach } from "vitest";
 import { LeadRepository } from "@/server/repositories/lead.repository";
 import { clearDb, createTestUser, createTestLead } from "./helpers";
 import { db } from "@/db";
@@ -18,7 +18,7 @@ describe("Transaction Atomicity Tests", () => {
     // Trigger a foreign key violation by assigning to a non-existent user
     try {
       await LeadRepository.assignLead(lead.id, 999999, admin.id);
-    } catch (e: unknown) {
+    } catch {
       // Expected to throw
     }
 

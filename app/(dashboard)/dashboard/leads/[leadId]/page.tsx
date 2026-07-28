@@ -38,7 +38,7 @@ interface LeadObj {
   message?: string;
   source: string;
   status: LeadStatus;
-  assignedUser?: { id: number; name: string; email: string };
+  assignedUser: { id: number; name: string; email: string } | null;
   createdAt: string;
 }
 
@@ -46,15 +46,15 @@ interface NoteObj {
   id: number;
   body: string;
   createdAt: string;
-  author?: { id: number; name: string; email: string };
+  author: { id: number; name: string; email: string } | null;
 }
 
 interface ActivityObj {
   id: number;
   type: string;
-  metadata: Record<string, unknown>;
+  metadata: Record<string, unknown> | null;
   createdAt: string;
-  actor?: { id: number; name: string };
+  actor: { id: number; name: string } | null;
 }
 
 export default function LeadDetailPage({ params }: { params: Promise<{ leadId: string }> }) {

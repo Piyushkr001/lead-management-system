@@ -45,30 +45,33 @@ export async function getCurrentUser(): Promise<UserSession | null> {
 
   if (!token) return null;
 
+  let payload;
   try {
-    const { payload } = await jwtVerify(token, SECRET_KEY);
-    
-    if (!payload.id) return null;
-
-    const [user] = await db
-      .select()
-      .from(usersTable)
-      .where(eq(usersTable.id, payload.id as number))
-      .limit(1);
-
-    if (!user || !user.isActive) {
-      return null;
-    }
-
-    return {
-      id: user.id,
-      name: user.name,
-      email: user.email,
-      role: user.role,
-    };
+    const result = await jwtVerify(token, SECRET_KEY);
+    payload = result.payload;
   } catch {
+    return null; // Invalid or expired JWT
+  }
+  
+  if (!payload.id) return null;
+
+  // DB query OUTSIDE catch block to allow infrastructure errors to propagate
+  const [user] = await db
+    .select()
+    .from(usersTable)
+    .where(eq(usersTable.id, payload.id as number))
+    .limit(1);
+
+  if (!user || !user.isActive) {
     return null;
   }
+
+  return {
+    id: user.id,
+    name: user.name,
+    email: user.email,
+    role: user.role,
+  };
 }
 
 export async function requireAuth(): Promise<UserSession> {
